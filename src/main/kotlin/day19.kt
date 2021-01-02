@@ -24,9 +24,10 @@ fun main() {
     // You can do it matching 42+ and 31+ and then checking that the number of appearances of group 42 is bigger than
     // the number of appearances of group 31. This way you have the same number of appearances of 42 and 31 and some
     // more 42 at the beginning that you can attribute to rule 8.
-    val rx11 = (1..10).map { "(?:" + "(?:$rx42)".repeat(it) + "(?:$rx31)".repeat(it) + ")" }.joinToString("|")
-    val rxPart2 = Regex("(?:(?:$rx42)+)(?:$rx11)")
+//    val rx11 = (1..10).map { "(?:" + "(?:$rx42)".repeat(it) + "(?:$rx31)".repeat(it) + ")" }.joinToString("|")
+    val rxPart2 = Regex("((?:$rx42)+)((?:$rx31)+)")
     val count2 = data.lines().count { line ->
+        val rr = rxPart2.find(line)!!.groups
         val m = rxPart2.matches(line)
         m
     }
