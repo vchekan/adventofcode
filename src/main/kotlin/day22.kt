@@ -72,7 +72,7 @@ fun part2() {
     // 8411 low
     // 9833 low
     println("part2: $part2")
-    println("Time: ${time.toDuration(DurationUnit.NANOSECONDS)}")
+    println("Time: ${time.toDuration(DurationUnit.NANOSECONDS)} iterations: $count")
 }
 
 var count = 0
@@ -82,15 +82,8 @@ fun player1wins(q1: ArrayDeque<Int>, q2: ArrayDeque<Int>) : Boolean {
     var states1 = mutableSetOf<String>()
     var states2 = mutableSetOf<String>()
 
-    var round = 0
     while(q1.isNotEmpty() && q2.isNotEmpty()) {
-        round += 1
         count += 1
-//        if(count % 10000 == 0)
-//            println("count: $count")
-//        println("-- Round $round --")
-//        println("Player 1's deck: ${q1.joinToString(", ")}")
-//        println("Player 2's deck: ${q2.joinToString(", ")}")
 
         val state1 = q1.joinToString()
         val state2 = q2.joinToString()
@@ -100,32 +93,22 @@ fun player1wins(q1: ArrayDeque<Int>, q2: ArrayDeque<Int>) : Boolean {
 
         val card1 = q1.removeFirst()
         val card2 = q2.removeFirst()
-//        println("Player 1 plays: $card1")
-//        println("Player 2 plays: $card2")
 
+        var p1won: Boolean
         if(q1.size < card1 || q2.size < card2) {
-            if(card1 > card2) {
-                q1.addLast(card1)
-                q1.addLast(card2)
-//                println("Player 1 wins round $round")
-            } else {
-                q2.addLast(card2)
-                q2.addLast(card1)
-//                println("Player 2 wins round $round")
-            }
-            continue
+            p1won = card1 > card2
+        } else {
+            val q1copy = ArrayDeque(q1.take(card1))
+            val q2copy = ArrayDeque(q2.take(card2))
+            p1won = player1wins(q1copy, q2copy)
         }
 
-        val q1copy = ArrayDeque(q1.take(card1))
-        val q2copy = ArrayDeque(q2.take(card2))
-        if(player1wins(q1copy, q2copy)) {
+        if(p1won) {
             q1.addLast(card1)
             q1.addLast(card2)
-//            println("Player 1 wins round $round")
         } else {
             q2.addLast(card2)
             q2.addLast(card1)
-//            println("Player 2 wins round $round")
         }
     }
 
