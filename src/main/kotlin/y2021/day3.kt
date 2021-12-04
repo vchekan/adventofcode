@@ -26,11 +26,9 @@ fun List<Int>.filterByBitAt(bit: Int, value: Int): List<Int> = this.filter { it 
 fun Boolean.toInt() = if(this) 1 else 0
 
 fun List<Int>.makeMajorBitMap(): List<Boolean> =
-    (0 until bits).map { bit ->
-        val ones = this.count { n -> (n and (1 shl bit) != 0) }
-        val zeros = this.size - ones
-        ones >= zeros
-    }
+    (0 until bits)
+        .map { bit -> this.count { n -> (n and (1 shl bit) != 0) } }
+        .map { it >= this.size - it }
 
 fun List<Int>.findRating(inverse: Boolean): Int {
     var nums = this
