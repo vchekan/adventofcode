@@ -7,7 +7,6 @@ fun main() {
     val calls = lines.split("\n\n")[0].split(',').map(String::toInt)
 
     val cards = lines.trim().split("\n\n").drop(1).map(String::parseCard)
-    cards.associateWith {  }
     var sets = cards.flatMap { card ->
         cardToLineSet(card).map { set -> Pair(set, card) }
     }.toMap()
