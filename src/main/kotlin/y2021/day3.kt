@@ -9,7 +9,7 @@ fun main() {
     var nums = lines.map { it.toInt(2) }
     val gamma = nums.makeMajorBitMap().reversed().fold(0) { acc, i -> (acc shl 1) or i.toInt() }
 
-    val epsilon = gamma.inv() and ((1 shl bits) - 1)
+    val epsilon = gamma xor ((1 shl bits) - 1)
     val powerConsumption = gamma * epsilon
     println("Part 1: gamma: $gamma, epsilon: $epsilon, power consumption: $powerConsumption")
     assert(powerConsumption == 1092896)
