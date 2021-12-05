@@ -22,19 +22,19 @@ fun main() {
     assert(lifeSupportRating == 4672151)
 }
 
-fun List<Int>.filterByBitAt(bit: Int, value: Int): List<Int> = this.filter { it and (1 shl bit) == value shl bit }
+fun List<Int>.filterByBitAt(bit: Int, value: Boolean): List<Int> = this.filter { num -> num and (1 shl bit) == value.toInt() shl bit }
 fun Boolean.toInt() = if(this) 1 else 0
 
 fun List<Int>.makeMajorBitMap(): List<Boolean> =
     (0 until bits)
         .map { bit -> this.count { n -> (n and (1 shl bit) != 0) } }
-        .map { it >= this.size - it }
+        .map { oneCount -> oneCount >= this.size - oneCount }
 
 fun List<Int>.findRating(inverse: Boolean): Int {
     var nums = this
     for(bit in bits-1 downTo 0) {
         val map = nums.makeMajorBitMap()
-        val value = (map[bit] xor inverse).toInt()
+        val value = map[bit] xor inverse
         nums = nums.filterByBitAt(bit, value)
         if(nums.size == 1)
             return nums.first()
