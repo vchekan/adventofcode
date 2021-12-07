@@ -5,8 +5,12 @@ import java.io.File
 fun main() {
     val timers = //"3,4,3,1,2".split(',').map(String::toInt)
         File("data/2021/d6.txt").readLines()[0].split(',').map(String::toInt)
-    println(solution1(timers, 80))
-    println(solution1(timers, 256))
+    val s1 = solution1(timers, 80)
+    val s2 = solution1(timers, 256)
+    println(s1)
+    println(s2)
+    assert(s1 == 390011L)
+    assert(s2 == 1746710169834)
 }
 
 fun solution1(init: List<Int>, days: Int): Long {
