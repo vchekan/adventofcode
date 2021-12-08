@@ -35,12 +35,11 @@ fun solution2(init: List<Int>, days: Int): Long {
     var p6 = 6
     for(day in 1..days) {
         val count0 = counts[p0]
-        p0++; p6++
-        if(p0 > 8)
-            p0 = 0
-        if(p6 > 8)
-            p6 = 0
+        p0 = p0.wrap(8)
+        p6 = p6.wrap(8)
         counts[p6] += count0
     }
     return counts.sum()
 }
+
+fun Int.wrap(max: Int): Int = if(this < max) this + 1 else 0
