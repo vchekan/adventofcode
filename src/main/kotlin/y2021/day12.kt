@@ -31,17 +31,20 @@ fun findAll(map: Map<String,Set<String>>, seenSmall: Set<String>, count: Int, no
     }
 
     return map[node]?.sumBy { child ->
-        if(child.first().isLowerCase())
-            if(child in seenSmall) {
-                if(extraVisit == child)
-                    return@sumBy findAll(map, seenSmall, count, child, null)
-                return@sumBy 0
-            }
+        val isSmallCave = child.first().isLowerCase()
+        val seenCave = isSmallCave && child in seenSmall
+        val useExtraVisit = child == extraVisit && seenCave
 
-        val newSeen = seenSmall + when {
-            child.first().isLowerCase() -> seenSmall + child
-            else -> seenSmall
+        return@sumBy when {
+            // Big cave, keep walking
+            !isSmallCave -> findAll(map, seenSmall, count, child, extraVisit)
+            // Small cave unseen before, mark as visited
+            !seenCave -> findAll(map, seenSmall + child, count, child, extraVisit)
+            // Small cave seen before but can borrow visit
+            useExtraVisit -> findAll(map, seenSmall, count, child, null)
+            // Small cave seen before and no borrow visit left
+            seenCave -> return@sumBy 0
+            else -> throw Exception("Should not happen")
         }
-        findAll(map, newSeen, count, child, extraVisit)
     } ?: 0
 }
