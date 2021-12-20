@@ -18,6 +18,17 @@ fun Area.around9(row: Int, col: Int): Sequence<Point> {
     }
 }
 
+fun Area.around4(row: Int, col: Int): Sequence<Point> {
+    return sequence {
+        yield(Point(row-1, col))
+        yield(Point(row+1, col))
+        yield(Point(row, col-1))
+        yield(Point(row, col+1))
+    }.filter { it.row in 0 until this.size && it.col in 0 until this[row].size }
+}
+
+fun Area.around4(p: Point): Sequence<Point>  = this.around4(p.row, p.col)
+
 fun Area.points(): Sequence<Point> = sequence {
     for(row in 0 until this@points.size)
         for(col in 0 until this@points[0].size)
