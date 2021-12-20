@@ -34,7 +34,7 @@ fun countPolymers(iterations: Int, template: String, replacements: Map<String, L
     // Exploit the fact that Kotlin uses ordered maps by default and preserves order.
     val firstChar = result.entries.first().key[0] to 1L
     // Every char is present in 2 pairs, once in the beginning, and another time as the second element.
-    // So we can get true count by counting the second element and ammending for the very first item, which does not have
+    // So we can get true count by counting the second element and amending for the very first item, which does not have
     // a pair.
     val counts = (result.map { (k,v) -> k[1] to v } + firstChar)
         .groupingBy { it.first }.aggregate { _, acc: Long?, element, _ -> (acc ?: 0) + element.second }
