@@ -2,6 +2,8 @@ package y2021.d18
 
 import java.io.File
 import kotlin.math.max
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 sealed interface SNum {
     var parent: SPair?
@@ -26,28 +28,36 @@ data class SPair(var left: SNum, var right: SNum, override var parent: SPair?): 
     override fun toString(): String = "($left, $right)"
 }
 
+@OptIn(ExperimentalTime::class)
 fun main() {
     var lines = File("data/2021/d18.txt").readLines()
-    val part1 = lines
-        .map(String::toSNum)
-        .reduce(SNum::plus)
-        .magnitude()
-    println("Part 1: $part1")
+
+    val (part1, time1) = measureTimedValue {
+        lines
+            .map(String::toSNum)
+            .reduce(SNum::plus)
+            .magnitude()
+    }
+    println("Part 1: $part1, time: $time1")
     assert(part1 == 3756)
 
-    var part2 = Int.MIN_VALUE
-    for(i in 0 until lines.size-1) {
-        for(j in i+1 until lines.size-1) {
-            var nums = lines.map(String::toSNum)
-            val n1 = (nums[i] + nums[j]).magnitude()
-            nums = lines.map(String::toSNum)
-            val n2 = (nums[j] + nums[i]).magnitude()
-            val n = max(n1, n2)
-            if(n > part2)
-                part2 = n
+
+    val (part2, time2) = measureTimedValue {
+        var part2 = Int.MIN_VALUE
+        for(i in 0 until lines.size-1) {
+            for(j in i+1 until lines.size-1) {
+                var nums = lines.map(String::toSNum)
+                val n1 = (nums[i] + nums[j]).magnitude()
+                nums = lines.map(String::toSNum)
+                val n2 = (nums[j] + nums[i]).magnitude()
+                val n = max(n1, n2)
+                if(n > part2)
+                    part2 = n
+            }
         }
+        part2
     }
-    println("Part 2: $part2")
+    println("Part 2: $part2, time: $time2")
     assert(part2 == 4585)
 }
 
