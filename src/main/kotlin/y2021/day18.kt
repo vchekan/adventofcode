@@ -2,6 +2,8 @@ package y2021.d18
 
 import java.io.File
 import kotlin.math.max
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 sealed interface SNum {
     var parent: SPair?
@@ -11,46 +13,52 @@ sealed interface SNum {
         this.reduce()
         b.reduce()
         val pair = SPair(this, b, null)
-        this.parent = pair
-        b.parent = pair
         pair.reduce()
-        //println(">${pair.render(noColor = false)}")
         return pair
     }
 }
 data class SDigit(var n: Int, override var parent: SPair?): SNum {
-    override fun toString(): String {
-        return n.toString()
-    }
+    override fun toString(): String = n.toString()
 }
 data class SPair(var left: SNum, var right: SNum, override var parent: SPair?): SNum {
-    override fun toString(): String {
-        return "($left, $right)"
+    init {
+        left.parent = this
+        right.parent = this
     }
+    override fun toString(): String = "($left, $right)"
 }
 
+@OptIn(ExperimentalTime::class)
 fun main() {
     var lines = File("data/2021/d18.txt").readLines()
-    val part1 = lines
-        .map(String::toSNum)
-        .reduce(SNum::plus)
-        .magnitude()
-    println("Part 1: $part1")
 
-    var max = Int.MIN_VALUE
-    for(i in 0 until lines.size-1) {
-        for(j in i+1 until lines.size-1) {
-            var nums = lines.map(String::toSNum)
-            val n1 = (nums[i] + nums[j]).magnitude()
-            nums = lines.map(String::toSNum)
-            val n2 = (nums[j] + nums[i]).magnitude()
-            val n = max(n1, n2)
-            if(n > max)
-                max = n
-        }
+    val (part1, time1) = measureTimedValue {
+        lines
+            .map(String::toSNum)
+            .reduce(SNum::plus)
+            .magnitude()
     }
-    // 4577: low
-    println("Part 2: $max")
+    println("Part 1: $part1, time: $time1")
+    assert(part1 == 3756)
+
+
+    val (part2, time2) = measureTimedValue {
+        var part2 = Int.MIN_VALUE
+        for(i in 0 until lines.size-1) {
+            for(j in i+1 until lines.size-1) {
+                var nums = lines.map(String::toSNum)
+                val n1 = (nums[i] + nums[j]).magnitude()
+                nums = lines.map(String::toSNum)
+                val n2 = (nums[j] + nums[i]).magnitude()
+                val n = max(n1, n2)
+                if(n > part2)
+                    part2 = n
+            }
+        }
+        part2
+    }
+    println("Part 2: $part2, time: $time2")
+    assert(part2 == 4585)
 }
 
 fun String.toSNum(): SNum = Parser(this).parseSNum()
@@ -66,8 +74,6 @@ class Parser(private val str: String) {
                 val b = parseSNum()
                 consume(']')
                 val pair = SPair(a, b, null)
-                a.parent = pair
-                b.parent = pair
                 pair
             }
             in '0'..'9' -> {
@@ -85,89 +91,69 @@ class Parser(private val str: String) {
             throw Exception("Unexpected char at pos $pos. Got '${str[pos]}' but expected $c")
         pos++
     }
-
 }
 
 fun SNum.explode(depth: Int = 0): Boolean {
-    when(this) {
-        is SDigit -> {}
+    return when(this) {
+        is SDigit -> false
         is SPair -> {
             if(depth == 4) {
-                this.findFirstLeft()?.let{ it.n += (left as SDigit).n }
-                this.findFirstRight()?.let { it.n += (right as SDigit).n }
+                this.findFirstLeftOrRight(searchLeft = true)?.let{ it.n += (left as SDigit).n }
+                this.findFirstLeftOrRight(searchLeft = false)?.let { it.n += (right as SDigit).n }
                 when(isLeftChild()) {
                     true -> parent!!.left = SDigit(0, parent)
                     false -> parent!!.right = SDigit(0, parent)
                 }
-                return true
+                true
             } else {
-                if(left.explode(depth + 1)) {
-                    return true
-                }
-
-                return right.explode(depth + 1)
+                left.explode(depth + 1) || right.explode(depth + 1)
             }
         }
     }
-
-    return false
 }
 
-fun SPair.findFirstRight(): SDigit? {
-    var node: SPair = this
+/**
+ * Two-phase algorithm. First. walk up, looking for a node where direction of inheritance is changed and switch
+ * to the opposite direction sub-branch. Then, descend, looking for the deepest child with the opposite direction
+ * to the searched one.
+ */
+fun SPair.findFirstLeftOrRight(searchLeft: Boolean): SDigit? {
+    fun selectSameDirection(n: SPair): SNum = if(searchLeft) n.left else n.right
+    fun selectReverseDirection(n: SPair): SNum = if(searchLeft) n.right else n.left
+    var directionChangeNode: SPair = this
     while(true) {
-        val isRightChild = (node.parent ?: return null).right === node
-        node = node.parent!!
-        if(!isRightChild)
+        val isParentDirectionChange = selectSameDirection(directionChangeNode.parent ?: return null) !== directionChangeNode
+        directionChangeNode = directionChangeNode.parent!!
+        if(isParentDirectionChange)
             break
     }
 
-    var firstRight = node.right
-    while(firstRight is SPair)
-        firstRight = firstRight.left
-
-    return firstRight as SDigit
+    // Now, when parent turn node is found, descend in *opposite* direction to the requested,
+    // to find "the most" left or right node.
+    var descendNode = selectSameDirection(directionChangeNode)
+    while(true)
+        when(descendNode) {
+            is SPair -> descendNode = selectReverseDirection(descendNode)
+            is SDigit -> return descendNode
+        }
 }
 
-fun SPair.findFirstLeft(): SDigit? {
-    var node: SPair = this
-    while(true) {
-        val isLeftChild = (node.parent ?: return null).left === node
-        node = node.parent!!
-        if(!isLeftChild)
-            break
-    }
-
-    var firstLeft = node.left
-    while(firstLeft is SPair)
-        firstLeft = firstLeft.right
-
-    return firstLeft as SDigit
-}
 
 fun SNum.split(): Boolean {
-    when(this) {
-        is SPair -> {
-            if(left.split())
-                return true
-            return right.split()
-        }
+    return when(this) {
+        is SPair -> left.split() || right.split()
         is SDigit -> {
             if(this.n <= 9)
                 return false
             val pair = SPair(SDigit(n / 2, null), SDigit(n - n / 2, null), parent)
-            pair.left.parent = pair
-            pair.right.parent = pair
             if(isLeftChild())
                 parent!!.left = pair
             else
                 parent!!.right = pair
 
-            return true
+            true
         }
     }
-
-    return false
 }
 
 fun SNum.reduce() {
@@ -186,7 +172,6 @@ fun SNum.render(level: Int = 0, noColor: Boolean = true): String {
         is SDigit -> {
             val (color1, color2) = if(!noColor && level < 6 && n > 9) "\u001B[36m" to "\u001B[0m" else "" to ""
             "$color1$n$color2"
-//            "$n"
         }
         is SPair -> {
             val (color1, color2) = if (!noColor && level >= 4) "\u001B[31m" to "\u001B[0m" else "" to ""
