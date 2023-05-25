@@ -172,6 +172,7 @@ fun SNum.split(): Boolean {
 
 fun SNum.reduce() {
     while(true) {
+        println(this.render(noColor = false))
         if(this.explode())
             continue
         if(this.split())
