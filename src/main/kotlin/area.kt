@@ -42,3 +42,7 @@ operator fun List<MutableList<Int>>.set(p: Point, v: Int) {
     this[p.row][p.col] = v
 }
 
+fun <T> List<MutableList<T>>.display(): String =
+    this.map {
+        it.joinToString(" ")
+    }.joinToString("\n")
