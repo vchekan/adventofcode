@@ -27,7 +27,8 @@ fun main() {
 
 fun findPath(map: Area, start: Point, target: Point): Int? {
     var newPoints: Map<Point,Int> = mapOf(start to 0)
-    val seen = mutableMapOf<Point,Int>(start to 0)
+    val seen = mutableMapOf<Point,Int>(start
+            to 0)
 
     while(newPoints.isNotEmpty()) {
         newPoints = newPoints.flatMap { (point, danger) ->
