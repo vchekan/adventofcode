@@ -17,6 +17,7 @@ zoneight234
 
 fun main() {
     println(calibrate(test))
+    println(test.lines().map(String::calibrate2rx).sum())
     println(calibrate(File("data/2023/day1.txt").readText()))
 
     println(calibrate2(test2))
@@ -41,3 +42,11 @@ fun calibrate2(lines: String): Int =
         val d2 = digitToIntMap[rxReversed.find(line.reversed())!!.value]!!
         10 * d1 + d2
     }
+
+val rx2 = Regex("(?=(\\d+|${ds.joinToString("|")}))")
+fun String.calibrate2rx(): Int  {
+    val digits = rx2.findAll(this).toList()
+    val d1 = digitToIntMap[digits.first().groupValues[1]]!!
+    val d2 = digitToIntMap[digits.last().groupValues[1]]!!
+    return 10 * d1 + d2
+}
