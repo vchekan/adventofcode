@@ -35,12 +35,15 @@ fun Card.wins(): Int {
 
 fun Card.matches(): Int = this.winning.intersect(this.have).count()
 
+
 fun List<Card>.play(): Long {
-    var count = 0L
-    for((i, card) in this.withIndex()) {
-        count += card.instances
-        val wins = card.matches()
-        this.drop(i+1).take(wins).forEach { it.instances += card.instances }
+    this.withIndex().forEach { (i, card) ->
+        this.drop(i+1)              // starting from the next card after current
+            .take(card.matches())      // for the next "score" cards
+            // every instance of current card contributes an additional
+            // copy to the following cards to the total of `card.instances` additional copies
+            .forEach { it.instances += card.instances }
+
     }
-    return count
+    return this.sumOf { it.instances }
 }
