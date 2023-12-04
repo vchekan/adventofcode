@@ -1,7 +1,6 @@
 package y2023.d4
 
 import java.io.File
-import kotlin.math.min
 
 val test = """Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
 Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
@@ -41,8 +40,7 @@ fun List<Card>.play(): Long {
     for((i, card) in this.withIndex()) {
         count += card.instances
         val wins = card.matches()
-        for(j in i+1..min(i  + wins, this.size - 1))
-            this[j].instances += card.instances
+        this.drop(i+1).take(wins).forEach { it.instances += card.instances }
     }
     return count
 }
