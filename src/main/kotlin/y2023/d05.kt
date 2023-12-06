@@ -40,14 +40,12 @@ humidity-to-location map:
 """
 
 fun main() {
-    val seedsTest = seeds(test.lines())
-    val mappingsTest = parse(test)
-    println(seedsTest.minOfOrNull { seed -> mappingsTest.apply(seed).first })
+    val (seedsTest, mappingsTest) = parse(test)
+    println(seedsTest.minOfOrNull { seed -> mappingsTest.applyMappings(seed).first })
 
     val data = File("data/2023/day5.txt").readText()
-    val seeds = seeds(data.lines())
-    val mappings = parse(data)
-    println(seeds.minOfOrNull {seed -> mappings.apply(seed).first})
+    val (seeds, mappings) = parse(data)
+    println(seeds.minOfOrNull {seed -> mappings.applyMappings(seed).first})
 
     // part 2
     val seedRanges = seeds.windowed(2, step = 2).map { Range(it[0], it[0] + it[1] - 1) }
@@ -56,7 +54,7 @@ fun main() {
     for(range in seedRanges) {
         var n = range.start
         while(n <= range.end) {
-            val (res, width) = mappings.apply(n, Long.MAX_VALUE)
+            val (res, width) = mappings.applyMappings(n, Long.MAX_VALUE)
             n += width
             min = min(min, res)
             count++
@@ -69,33 +67,29 @@ val rx = Regex("\\d+")
 
 data class Range(val start: Long, val end: Long)
 
-
 data class RangeMap(val dstStart: Long, val srcStart: Long, val length: Long) {
     val dstEnd: Long get() = dstStart + length - 1
     val srcEnd: Long get() = srcStart + length - 1
 }
-data class Mapping(val ranges: List<RangeMap>)
+typealias Mapping = List<RangeMap>
 
 fun String.parse(): RangeMap {
     val (dst, src, len) = rx.findAll(this).map { it.value.toLong() }.toList()
     return RangeMap(dst, src, len)
 }
 
-fun seeds(almanac: List<String>): List<Long> =
-    rx.findAll(almanac.first()).map { it.value.toLong() }.toList()
-
-fun parse(almanac: String): List<Mapping> {
-    val sections = almanac.split("\n\n").drop(1).filter(String::isNotEmpty).map(String::lines)
-    return sections.map { section ->
-        val ranges = section.drop(1).filter(String::isNotEmpty).map(String::parse)
-            .sortedBy { it.dstStart }
-        Mapping(ranges)
+fun parse(almanac: String): Pair<List<Long>, List<Mapping>> {
+    val sections = almanac.split("\n\n")
+    val header = rx.findAll(sections.first()).map { it.value.toLong() }.toList()
+    val mappings = sections.drop(1).map(String::lines).map { section ->
+        section.drop(1).filter(String::isNotEmpty).map(String::parse)
     }
+    return header to mappings
 }
 
 fun Mapping.apply(n: Long, width: Long): Pair<Long, Long> {
-    for(range in this.ranges) {
-        if(n in range.srcStart until range.srcStart + range.length) {
+    for(range in this) {
+        if(n in range.srcStart..range.srcEnd) {
             val n2 = range.dstStart + (n - range.srcStart)
             val width2 = range.dstEnd - n2 + 1
             return n2 to min(width, width2)
@@ -104,6 +98,6 @@ fun Mapping.apply(n: Long, width: Long): Pair<Long, Long> {
     return n to width
 }
 
-fun List<Mapping>.apply(n: Long, width: Long = Long.MAX_VALUE): Pair<Long, Long> {
+fun List<Mapping>.applyMappings(n: Long, width: Long = Long.MAX_VALUE): Pair<Long, Long> {
     return this.fold(n to width) {acc, mapping -> mapping.apply(acc.first, acc.second) }
 }
