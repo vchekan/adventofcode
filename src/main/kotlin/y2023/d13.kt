@@ -41,26 +41,17 @@ fun List<String>.metric(f: (List<String>) -> Int?): Int {
     return f(this.transpose())!! + 1
 }
 
-fun findHReflection2(map: List<String>, errors: Int = 0): Int? {
-    for(row in 0..map.size-2) {
-        var diffs = map[row].diff(map[row+1])
-        var i1 = row-1
-        var i2 = row +2
-        while(diffs <= errors && i1 >= 0 && i2 < map.size) {
-            diffs += map[i1].diff(map[i2])
-            i1--
-            i2++
-        }
-        if(diffs == errors)
-            return row
+fun findHReflection2(map: List<String>, allowedErrors: Int = 0): Int? =
+    (0..map.size-2).find { row ->
+        val half1 = map.take(row + 1).reversed()
+        val half2 = map.drop(row +1)
+        val errors = half1.zip(half2).sumOf { (l1, l2) -> l1.diff(l2) }
+        errors == allowedErrors
     }
-    return null
-}
 
 fun List<String>.transpose(): List<String> =
     this[0].indices.map { c ->
         this.map { it[c] }.joinToString("")
     }
 
-fun String.diff(b: String): Int =
-    this.indices.count { this[it] != b[it] }
+fun String.diff(b: String): Int = this.zip(b).count { it.first != it.second }
