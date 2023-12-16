@@ -2,7 +2,6 @@ package aoc.area.y2023.d16
 
 import aoc.area.Point
 import java.io.File
-import java.io.Serializable
 
 val test =""".|...\....
 |.-.\.....
@@ -67,21 +66,23 @@ fun List<String>.move(p: Point, dir: Dir): List<Pair<Point, Dir>> =
             Dir.Right -> Dir.Up
             Dir.Down -> Dir.Left
             Dir.Left -> Dir.Down
-        }.let { dir -> listOf(p.move(dir) to dir) }
+        }.let { listOf(it) }
         '\\' -> when(dir) {
             Dir.Up -> Dir.Left
             Dir.Right -> Dir.Down
             Dir.Down -> Dir.Right
             Dir.Left -> Dir.Up
-        }.let { dir -> listOf(p.move(dir) to dir) }
+        }.let { listOf(it) }
         '|' -> when(dir) {
             Dir.Up, Dir.Down -> listOf(dir)
             Dir.Right, Dir.Left -> listOf(Dir.Up, Dir.Down)
-        }.map { dir -> p.move(dir) to dir }
+        }
         '-' -> when(dir) {
             Dir.Up, Dir.Down -> listOf( Dir.Left, Dir.Right)
             Dir.Right, Dir.Left -> listOf(dir)
-        }.map { dir -> p.move(dir) to dir }
-        '.' -> listOf(p.move(dir) to dir)
+        }
+        '.' -> listOf(dir)
         else -> throw Exception()
-    }.filter { p -> p.first.row in this.indices && p.first.col in this[0].indices }
+    }
+        .map { dir -> p.move(dir) to dir }
+        .filter { p -> p.first.row in this.indices && p.first.col in this[0].indices }
