@@ -21,8 +21,6 @@ fun main() {
     val map = data.parse()
     val states = HashMap<String,Int>()
 
-    var count1 = 0
-    var count2 = 0
     repeat(count) {
         map.cycle()
         val id = map.id()
