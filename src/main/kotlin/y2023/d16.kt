@@ -14,11 +14,44 @@ val test =""".|...\....
 .|....-|.\
 ..//.|...."""
 
+/*
+    '/'
+    0 -> 1      00 -> 01
+    1 -> 0      01 -> 00
+    2 -> 3      10 -> 11
+    3 -> 2      11 -> 10
+
+    '\'
+    0 -> 3      00 -> 11
+    1 -> 2      01 -> 10
+    2 -> 1      10 -> 01
+    3 -> 0      11 -> 00
+
+    '-'
+    0 -> 1,3    00 -> 01, 11
+    1 -> 1      01 -> 01
+    2 -> 1,3    10 -> 01, 11
+    3 -> 3      11 -> 11
+
+    '|'
+    0 -> 0      00
+    1 -> 0,2    01
+    2 -> 2      10
+    3 -> 0,2    11
+ */
 enum class Dir {
-    Up,
-    Right,
-    Down,
-    Left
+    Up,     // 0
+    Right,  // 1
+    Down,   // 2
+    Left;   // 3
+
+    fun next(m: Char): List<Dir> = when {
+        m == '/' -> listOf(entries[ordinal xor 1])
+        m == '\\' -> listOf(entries[ordinal.inv() and 0b11])
+        m == '-' && (ordinal.and(1) == 0) -> listOf(Left, Right)
+        m == '|' && (ordinal.and(1) != 0) -> listOf(Up, Down)
+        else -> listOf(this)
+    }
 }
 
 fun main() {
@@ -50,39 +83,15 @@ fun List<String>.run(start: Pair<Point,Dir>): Int {
 
 fun String.parse(): List<String> = this.lines()
     .filter(String::isNotEmpty)
-
 fun Point.move(d: Dir): Point =
     when(d) {
-        Dir.Up -> this.copy(row = this.row - 1)
-        Dir.Right -> this.copy(col = this.col + 1)
-        Dir.Down -> this.copy(row = this.row + 1)
-        Dir.Left -> this.copy(col = this.col - 1)
+        Dir.Up -> copy(row = row - 1)
+        Dir.Right -> copy(col = col + 1)
+        Dir.Down -> copy(row = row + 1)
+        Dir.Left -> copy(col = col - 1)
     } 
 
 fun List<String>.move(p: Point, dir: Dir): List<Pair<Point, Dir>> =
-    when(this[p.row][p.col]) {
-        '/' -> when(dir) {
-            Dir.Up -> Dir.Right
-            Dir.Right -> Dir.Up
-            Dir.Down -> Dir.Left
-            Dir.Left -> Dir.Down
-        }.let { listOf(it) }
-        '\\' -> when(dir) {
-            Dir.Up -> Dir.Left
-            Dir.Right -> Dir.Down
-            Dir.Down -> Dir.Right
-            Dir.Left -> Dir.Up
-        }.let { listOf(it) }
-        '|' -> when(dir) {
-            Dir.Up, Dir.Down -> listOf(dir)
-            Dir.Right, Dir.Left -> listOf(Dir.Up, Dir.Down)
-        }
-        '-' -> when(dir) {
-            Dir.Up, Dir.Down -> listOf( Dir.Left, Dir.Right)
-            Dir.Right, Dir.Left -> listOf(dir)
-        }
-        '.' -> listOf(dir)
-        else -> throw Exception()
-    }
-        .map { dir -> p.move(dir) to dir }
-        .filter { p -> p.first.row in this.indices && p.first.col in this[0].indices }
+    dir.next(this[p.row][p.col])
+        .map { newDir -> p.move(newDir) to newDir }
+        .filter { newPoint -> newPoint.first.row in this.indices && newPoint.first.col in this[0].indices }
