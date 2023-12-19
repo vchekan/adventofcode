@@ -47,7 +47,7 @@ enum class Dir {
 
     fun next(m: Char): List<Dir> = when {
         m == '/' -> listOf(entries[ordinal xor 1])
-        m == '\\' -> listOf(entries[ordinal.inv() and 0b11])
+        m == '\\' -> listOf(entries[ordinal xor 0b11])
         m == '-' && (ordinal.and(1) == 0) -> listOf(Left, Right)
         m == '|' && (ordinal.and(1) != 0) -> listOf(Up, Down)
         else -> listOf(this)
